@@ -6,6 +6,7 @@ import * as chess from 'chess.js';
 import { nextTick } from 'vue';
 import global from './mixins/global';
 import mixins from './mixins/index';
+import loginform from './form.vue';
 import jQuery from './js/jquery.module.js';
 </script>
 <template>
@@ -26,6 +27,7 @@ import jQuery from './js/jquery.module.js';
                         <ul>
                             <li v-for="challenge, idx in challenges">
                                 <span>{{ challenge?.id }}</span>
+                                <span> from {{ challenge?.challenger?.id }}</span>
                                 <button @click="acceptChallenge(challenge?.id)" class="btn btn-secondary">
                                     Accept challenge</button>
                             </li>
@@ -51,7 +53,12 @@ import jQuery from './js/jquery.module.js';
         </div>
     </template>
     <template v-else>
-        <RouterView />
+        <template v-if="!['login', 'join'].includes(decodeURI($route.path).replace('/', ''))">
+            <a href="/login">Sign in</a>
+        </template>
+        <template v-else>
+            <RouterView />
+        </template>
     </template>
 </template>
 <style scoped>
@@ -246,15 +253,17 @@ export default {
                         this.challengeOpts.gameid = id;
                         this.playing = true;
                     }
-                    var config = this.config(thisVar);
-                    this.board = this.Chessboard('board', {
-                        onDragStart: config.onDragStart,
-                        onDrop: config.onDrop,
-                        onSnapEnd: config.onSnapEnd,
-                        draggable: true,
+                    nextTick(() => {
+                        var config = this.config(thisVar);
+                        this.board = this.Chessboard('board', {
+                            onDragStart: config.onDragStart,
+                            onDrop: config.onDrop,
+                            onSnapEnd: config.onSnapEnd,
+                            draggable: true,
+                        });
+                        console.log(this.board);
+                        this.board.position(newGame.fen());
                     });
-                    console.log(this.board);
-                    this.board.position(newGame.fen());
                 });
                 socket.on('new move', ({ move, info, id }) => {
                     console.log('got move');
@@ -264,7 +273,17 @@ export default {
                             return socket.emit("error", { msg: "move is not valid" });
                         }
                         this.board.position(this.game.fen());
+                        if (info?.gameEnd) {
+                            if (info?.draw) {
+                                confirm(`Draw ${info?.reason ? '(' + info?.reason + ')' : ''}`);
+                            } else if (this.players[info?.winner] === this.session.user?.id) {
+                                confirm('You won.');
+                            } else {
+                                confirm('You lost');
+                            }
+                        }
                     }
+                    return;
                 });
                 socket.on('error', (msg) => {
                     confirm(msg?.msg);

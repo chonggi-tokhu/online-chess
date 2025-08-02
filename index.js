@@ -391,8 +391,22 @@ io.on('connection', (socket) => {
         }
         console.log(game?.id);
         var info = {};
-        if (chessFromObj.isCheckmate()) {
-            info.gameEnd = true;
+        if (chessFromObj.isGameOver()) {
+            if (chessFromObj.isCheckmate()) {
+                info.gameEnd = true;
+                info.winner = getOpponentColour(chessFromObj.turn());
+            } else if (chessFromObj.isDraw()) {
+                info.draw = true;
+                if (chessFromObj.isInsufficientMaterial()) {
+                    info.reason = "inseifficient material";
+                } else if (chessFromObj.isDrawByFiftyMoves()) {
+                    info.reason = "fifty moves";
+                } else if (chessFromObj.isStalemate()) {
+                    info.reason = "stalemate";
+                } else if (chessFromObj.isThreefoldRepetition()) {
+                    info.reason = "threefold repetition";
+                }
+            }
         }
         var test = useDB("chess_games", (p) => p.getSync() instanceof Array, (p) => {
             var gotTb = p.getSync();

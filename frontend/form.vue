@@ -12,6 +12,9 @@ import join from './join.vue';
     <template v-else-if="pageMode === 'join'">
         <join />
     </template>
+    <template v-else>
+        <a href="/login">Sign in</a>
+    </template>
 </template>
 <script>
 export default {
