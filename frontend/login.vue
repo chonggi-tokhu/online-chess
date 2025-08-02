@@ -38,7 +38,8 @@ export default {
                     pw: document.querySelector("#pw").value,
                 },
             }).then(data => {
-                return this.$router.push(data.data?.redirecturl);
+                window.location.replace(data.data?.redirecturl);
+                window.location.reload();
             });
         }
     },

@@ -35,7 +35,8 @@ export default {
                 },
                 headers: { 'Content-Type': 'application/json', },
             }).then(data => {
-                return this.$router.push(data.data?.redirecturl);
+                window.location.replace(data.data?.redirecturl);
+                window.location.reload();
             });
         }
     },
